@@ -174,6 +174,32 @@ function library:Window(Info)
     local WindowOpened = Instance.new("BoolValue", revenant)
     WindowOpened.Value = true
 
+    -- Create the toggle button to open/close the GUI
+    local toggleButton = Instance.new("TextButton")
+    toggleButton.Name = "ToggleButton"
+    toggleButton.BackgroundColor3 = Color3.fromRGB(36, 36, 36)
+    toggleButton.Position = UDim2.fromScale(0.02, 0.02)
+    toggleButton.Size = UDim2.fromOffset(100, 40)
+    toggleButton.Font = Enum.Font.GothamBold
+    toggleButton.Text = "Toggle GUI"
+    toggleButton.TextColor3 = Color3.fromRGB(214, 214, 214)
+    toggleButton.TextSize = 14
+    toggleButton.Parent = revenant
+
+    local toggleButtonUICorner = Instance.new("UICorner")
+    toggleButtonUICorner.Name = "ToggleButtonUICorner"
+    toggleButtonUICorner.CornerRadius = UDim.new(0, 4)
+    toggleButtonUICorner.Parent = toggleButton
+
+    -- Add hover effects for the toggle button
+    toggleButton.MouseEnter:Connect(function()
+        toggleButton.BackgroundColor3 = Color3.fromRGB(44, 44, 44)
+    end)
+
+    toggleButton.MouseLeave:Connect(function()
+        toggleButton.BackgroundColor3 = Color3.fromRGB(36, 36, 36)
+    end)
+
     -- Create the main frame for the GUI as shown in the image
     local mainFrame = Instance.new("Frame")
     mainFrame.Name = "MainFrame"
@@ -182,6 +208,7 @@ function library:Window(Info)
     mainFrame.Position = UDim2.fromScale(0.5, 0.5)
     mainFrame.Size = UDim2.fromOffset(204, 204)
     mainFrame.AnchorPoint = Vector2.new(0.5, 0.5)
+    mainFrame.Visible = false -- Initially hidden
     mainFrame.Parent = revenant
 
     local mainFrameUICorner = Instance.new("UICorner")
@@ -238,7 +265,7 @@ function library:Window(Info)
     killAuraButton2UICorner.CornerRadius = UDim.new(0, 8)
     killAuraButton2UICorner.Parent = killAuraButton2
 
-    -- Add basic hover effects for the buttons
+    -- Add hover effects for the KillAura buttons
     killAuraButton1.MouseEnter:Connect(function()
         killAuraButton1.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
     end)
@@ -255,13 +282,25 @@ function library:Window(Info)
         killAuraButton2.BackgroundColor3 = Color3.fromRGB(0, 170, 255)
     end)
 
-    -- Add click functionality (you can customize the callback)
+    -- Toggle the GUI visibility when the toggle button is clicked
+    toggleButton.MouseButton1Click:Connect(function()
+        mainFrame.Visible = not mainFrame.Visible
+        toggleButton.Text = mainFrame.Visible and "Close GUI" or "Open GUI"
+    end)
+
+    -- Add click functionality for the KillAura buttons
     killAuraButton1.MouseButton1Click:Connect(function()
-        print("KillAura Button 1 Clicked")
+        library:Notification({
+            Text = "KillAura Button 1 Clicked",
+            Duration = 3
+        })
     end)
 
     killAuraButton2.MouseButton1Click:Connect(function()
-        print("KillAura Button 2 Clicked")
+        library:Notification({
+            Text = "KillAura Button 2 Clicked",
+            Duration = 3
+        })
     end)
 
     return insidewindow
