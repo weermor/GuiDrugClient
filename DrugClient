@@ -1,0 +1,269 @@
+local library = {}
+library.Flags = {}
+library.DefaultColor = Color3.fromRGB(56, 207, 154)
+library.YSpacing = 38
+
+local Players = game:GetService("Players")
+local Player = Players.LocalPlayer
+
+local Mouse = Player:GetMouse()
+
+local TweenService = game:GetService("TweenService")
+local UserInputService = game:GetService("UserInputService")
+
+local Blacklist = {Enum.KeyCode.Unknown, Enum.KeyCode.CapsLock, Enum.KeyCode.Escape, Enum.KeyCode.Tab, Enum.KeyCode.Return, Enum.KeyCode.Backspace, Enum.KeyCode.Space, Enum.KeyCode.W, Enum.KeyCode.A, Enum.KeyCode.S, Enum.KeyCode.D}
+
+for _,v in pairs(game:GetService("CoreGui"):GetChildren()) do
+    if v.Name == "Revenant" then
+        v:Destroy()
+    end
+end
+
+function library:GetXY(GuiObject)
+    local Max, May = GuiObject.AbsoluteSize.X, GuiObject.AbsoluteSize.Y
+    local Px, Py = math.clamp(Mouse.X - GuiObject.AbsolutePosition.X, 0, Max), math.clamp(Mouse.Y - GuiObject.AbsolutePosition.Y, 0, May)
+    return Px/Max, Py/May
+end
+
+function library:Toggle()
+    for _,v in pairs(game:GetService("CoreGui"):GetChildren()) do
+        if v.Name == "Revenant" then
+            v.Enabled = not v.Enabled
+        end
+    end
+end
+
+if not game:GetService("CoreGui"):FindFirstChild("NotificationLibrary") then
+    local notificationLibrary = Instance.new("ScreenGui")
+    notificationLibrary.Name = "NotificationLibrary"
+    notificationLibrary.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+    notificationLibrary.Parent = game:GetService("CoreGui")
+
+    local notificationHolder = Instance.new("Frame")
+    notificationHolder.Name = "NotificationHolder"
+    notificationHolder.AnchorPoint = Vector2.new(0, 0.5)
+    notificationHolder.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+    notificationHolder.BackgroundTransparency = 1
+    notificationHolder.Position = UDim2.fromScale(0, 0.5)
+    notificationHolder.Size = UDim2.fromScale(0.8, 1)
+    notificationHolder.Parent = notificationLibrary
+
+    local notificationUIListLayout = Instance.new("UIListLayout")
+    notificationUIListLayout.Name = "NotificationUIListLayout"
+    notificationUIListLayout.FillDirection = Enum.FillDirection.Vertical
+    notificationUIListLayout.SortOrder = Enum.SortOrder.LayoutOrder
+    notificationUIListLayout.Padding = UDim.new(0, 4)
+    notificationUIListLayout.VerticalAlignment = Enum.VerticalAlignment.Bottom
+    notificationUIListLayout.Parent = notificationHolder
+
+    local notificationUIPadding = Instance.new("UIPadding")
+    notificationUIPadding.Name = "NotificationUIPadding"
+    notificationUIPadding.PaddingBottom = UDim.new(0, 9)
+    notificationUIPadding.PaddingLeft = UDim.new(0, 5)
+    notificationUIPadding.Parent = notificationHolder
+end
+
+local NotificationLib = game:GetService("CoreGui"):FindFirstChild("NotificationLibrary")
+local Holder = NotificationLib:FindFirstChild("NotificationHolder")
+
+function library:Notification(NotificationInfo)
+    NotificationInfo.Text = NotificationInfo.Text or "This is a notification."
+    NotificationInfo.Duration = NotificationInfo.Duration or 5
+    NotificationInfo.Color = NotificationInfo.Color or library.DefaultColor
+
+    local notificationText = Instance.new("TextLabel")
+    notificationText.Name = "NotificationText"
+    notificationText.ClipsDescendants = true
+    notificationText.Font = Enum.Font.GothamBold
+    notificationText.Text = NotificationInfo.Text
+    notificationText.TextColor3 = Color3.fromRGB(214, 214, 214)
+    notificationText.TextSize = 14
+    notificationText.BackgroundColor3 = Color3.fromRGB(29, 29, 29)
+    notificationText.BorderSizePixel = 0
+    notificationText.Position = UDim2.fromScale(0, 0.954)
+    notificationText.Size = UDim2.fromOffset(0, 38)
+    notificationText.Parent = Holder
+
+    local outerFrame = Instance.new("Frame")
+    outerFrame.Name = "OuterFrame"
+    outerFrame.AnchorPoint = Vector2.new(0, 1)
+    outerFrame.BackgroundColor3 = NotificationInfo.Color
+    outerFrame.BorderSizePixel = 0
+    outerFrame.Position = UDim2.fromScale(0, 1)
+    outerFrame.Size = UDim2.new(1, 0, 0, 3)
+    outerFrame.ZIndex = 2
+    outerFrame.Parent = notificationText
+
+    local notificationUICorner = Instance.new("UICorner")
+    notificationUICorner.Name = "NotificationUICorner"
+    notificationUICorner.CornerRadius = UDim.new(0, 4)
+    notificationUICorner.Parent = notificationText
+
+    local innerFrame = Instance.new("Frame")
+    innerFrame.Name = "InnerFrame"
+    innerFrame.AnchorPoint = Vector2.new(0, 1)
+    innerFrame.BackgroundColor3 = Color3.fromRGB(38, 38, 38)
+    innerFrame.BorderSizePixel = 0
+    innerFrame.Position = UDim2.fromScale(0, 1)
+    innerFrame.Size = UDim2.new(1, 0, 0, 3)
+    innerFrame.Parent = notificationText
+
+    local NotifText = notificationText
+    local TextBounds = NotifText.TextBounds
+
+    coroutine.wrap(function()
+        local InTween = TweenService:Create(NotifText, TweenInfo.new(.3, Enum.EasingStyle.Quad, Enum.EasingDirection.InOut), {Size = UDim2.new(0, TextBounds.X + 20, 0, 38)})
+        InTween:Play()
+        InTween.Completed:Wait()
+
+        local LineTween = TweenService:Create(outerFrame, TweenInfo.new(NotificationInfo.Duration, Enum.EasingStyle.Linear, Enum.EasingDirection.In), {Size = UDim2.new(0, 0, 0, 3)})
+        LineTween:Play()
+        LineTween.Completed:Wait()
+
+        local OutTween = TweenService:Create(NotifText, TweenInfo.new(.3, Enum.EasingStyle.Quad, Enum.EasingDirection.InOut), {Size = UDim2.new(0, 0, 0, 38)})
+        OutTween:Play()
+        OutTween.Completed:Wait()
+        notificationText:Destroy()
+    end)()
+end
+
+local request = syn and syn.request or http and http.request or http_request or request or httprequest
+local getcustomasset = getcustomasset or getsynasset
+local isfolder = isfolder or syn_isfolder or is_folder
+local makefolder = makefolder or make_folder or createfolder or create_folder
+
+if not isfolder("Revenant") then
+    makefolder("Revenant")
+    local Circle = request({
+        Url = "https://github.com/Rain-Design/Libraries/blob/main/Icon/Circle.png?raw=true",
+        Method = "GET"
+    })
+    writefile("Revenant/Circle.png", Circle.Body)
+    library:Notification({
+        Text = "Downloaded Toggle Circle Asset.",
+        Duration = 3
+    })
+    local Collapse = request({
+        Url = "https://github.com/Rain-Design/Libraries/blob/main/Icon/CollapseArrow.png?raw=true",
+        Method = "GET"
+    })
+    writefile("Revenant/Collapse.png", Collapse.Body)
+    library:Notification({
+        Text = "Downloaded Collapse Asset.",
+        Duration = 3
+    })
+end
+
+function library:Window(Info)
+    Info.Text = Info.Text or "Revenant"
+
+    local Pos = 0.05
+
+    for _,v in pairs(game:GetService("CoreGui"):GetChildren()) do
+        if v.Name == "Revenant" then
+            Pos = Pos + 0.12
+        end
+    end
+
+    local insidewindow = {}
+
+    local revenant = Instance.new("ScreenGui")
+    revenant.Name = "Revenant"
+    revenant.Parent = game:GetService("CoreGui")
+
+    local WindowOpened = Instance.new("BoolValue", revenant)
+    WindowOpened.Value = true
+
+    -- Create the main frame for the GUI as shown in the image
+    local mainFrame = Instance.new("Frame")
+    mainFrame.Name = "MainFrame"
+    mainFrame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+    mainFrame.BackgroundTransparency = 0.5
+    mainFrame.Position = UDim2.fromScale(0.5, 0.5)
+    mainFrame.Size = UDim2.fromOffset(204, 204)
+    mainFrame.AnchorPoint = Vector2.new(0.5, 0.5)
+    mainFrame.Parent = revenant
+
+    local mainFrameUICorner = Instance.new("UICorner")
+    mainFrameUICorner.Name = "MainFrameUICorner"
+    mainFrameUICorner.CornerRadius = UDim.new(0, 8)
+    mainFrameUICorner.Parent = mainFrame
+
+    -- Create the "Loading" label
+    local loadingLabel = Instance.new("TextLabel")
+    loadingLabel.Name = "LoadingLabel"
+    loadingLabel.BackgroundTransparency = 1
+    loadingLabel.Size = UDim2.fromOffset(204, 50)
+    loadingLabel.Position = UDim2.fromScale(0.5, 0.3)
+    loadingLabel.AnchorPoint = Vector2.new(0.5, 0.5)
+    loadingLabel.Font = Enum.Font.GothamBold
+    loadingLabel.Text = "Loading"
+    loadingLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+    loadingLabel.TextSize = 20
+    loadingLabel.Parent = mainFrame
+
+    -- Create the first KillAura button (black background)
+    local killAuraButton1 = Instance.new("TextButton")
+    killAuraButton1.Name = "KillAuraButton1"
+    killAuraButton1.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+    killAuraButton1.Size = UDim2.fromOffset(100, 40)
+    killAuraButton1.Position = UDim2.fromScale(0.5, 0.5)
+    killAuraButton1.AnchorPoint = Vector2.new(0.5, 0.5)
+    killAuraButton1.Font = Enum.Font.GothamBold
+    killAuraButton1.Text = "KillAura"
+    killAuraButton1.TextColor3 = Color3.fromRGB(255, 255, 255)
+    killAuraButton1.TextSize = 14
+    killAuraButton1.Parent = mainFrame
+
+    local killAuraButton1UICorner = Instance.new("UICorner")
+    killAuraButton1UICorner.Name = "KillAuraButton1UICorner"
+    killAuraButton1UICorner.CornerRadius = UDim.new(0, 8)
+    killAuraButton1UICorner.Parent = killAuraButton1
+
+    -- Create the second KillAura button (blue background)
+    local killAuraButton2 = Instance.new("TextButton")
+    killAuraButton2.Name = "KillAuraButton2"
+    killAuraButton2.BackgroundColor3 = Color3.fromRGB(0, 170, 255)
+    killAuraButton2.Size = UDim2.fromOffset(100, 40)
+    killAuraButton2.Position = UDim2.fromScale(0.5, 0.7)
+    killAuraButton2.AnchorPoint = Vector2.new(0.5, 0.5)
+    killAuraButton2.Font = Enum.Font.GothamBold
+    killAuraButton2.Text = "KillAura"
+    killAuraButton2.TextColor3 = Color3.fromRGB(255, 255, 255)
+    killAuraButton2.TextSize = 14
+    killAuraButton2.Parent = mainFrame
+
+    local killAuraButton2UICorner = Instance.new("UICorner")
+    killAuraButton2UICorner.Name = "KillAuraButton2UICorner"
+    killAuraButton2UICorner.CornerRadius = UDim.new(0, 8)
+    killAuraButton2UICorner.Parent = killAuraButton2
+
+    -- Add basic hover effects for the buttons
+    killAuraButton1.MouseEnter:Connect(function()
+        killAuraButton1.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+    end)
+
+    killAuraButton1.MouseLeave:Connect(function()
+        killAuraButton1.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+    end)
+
+    killAuraButton2.MouseEnter:Connect(function()
+        killAuraButton2.BackgroundColor3 = Color3.fromRGB(0, 200, 255)
+    end)
+
+    killAuraButton2.MouseLeave:Connect(function()
+        killAuraButton2.BackgroundColor3 = Color3.fromRGB(0, 170, 255)
+    end)
+
+    -- Add click functionality (you can customize the callback)
+    killAuraButton1.MouseButton1Click:Connect(function()
+        print("KillAura Button 1 Clicked")
+    end)
+
+    killAuraButton2.MouseButton1Click:Connect(function()
+        print("KillAura Button 2 Clicked")
+    end)
+
+    return insidewindow
+end
+return library
